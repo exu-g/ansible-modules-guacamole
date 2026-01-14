@@ -81,7 +81,7 @@ author:
 EXAMPLES = '''
 
 - name: Create a new user-group "users1" with permissions for connections: "c1' and "c2"
-  scicore.guacamole.guacamole_users_group:
+  scicore.guacamole.guacamole_user_groups:
     base_url: http://localhost/guacamole
     auth_username: guacadmin
     auth_password: guacadmin
@@ -89,7 +89,7 @@ EXAMPLES = '''
     state: present
 
 - name: Remove user-group "users1".
-  scicore.guacamole.guacamole_users_group:
+  scicore.guacamole.guacamole_user_groups:
     base_url: http://localhost/guacamole
     auth_username: guacadmin
     auth_password: guacadmin
@@ -97,7 +97,7 @@ EXAMPLES = '''
     state: absent
 
 - name: Remove connection "c1" from user-group "users1".
-  scicore.guacamole.guacamole_users_group:
+  scicore.guacamole.guacamole_user_groups:
     base_url: http://localhost/guacamole
     auth_username: guacadmin
     auth_password: guacadmin
@@ -106,7 +106,7 @@ EXAMPLES = '''
 
 - name: Sync user-groups and permissions. This will create groups and permissions defined
     in the permissions dict, and delete anything not defined in the permissions.
-  scicore.guacamole.guacamole_users_group:
+  scicore.guacamole.guacamole_user_groups:
     base_url: http://localhost/guacamole
     auth_username: guacadmin
     auth_password: guacadmin
