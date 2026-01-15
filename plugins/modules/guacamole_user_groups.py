@@ -9,7 +9,7 @@ import json
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.urls import open_url
 from ansible_collections.scicore.guacamole.plugins.module_utils.guacamole import GuacamoleError, \
-    guacamole_get_token, guacamole_get_connections
+    guacamole_get_token, guacamole_get_connections, guacamole_get_connections_groups
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -307,6 +307,8 @@ def main():
 
     if module.params.get('type') not in ['host', 'group']:
         raise GuacamoleError("type must be 'host' or 'group'")
+
+    # type host
     # Get the list of the existing connections.
     try:
         guacamole_existing_connections = guacamole_get_connections(
@@ -314,6 +316,18 @@ def main():
             validate_certs=module.params.get('validate_certs'),
             datasource=guacamole_token['dataSource'],
             group='ROOT',
+            auth_token=guacamole_token['authToken'],
+        )
+    except GuacamoleError as e:
+        module.fail_json(msg=str(e))
+
+    # type group
+    # Get the list of the existing connection groups.
+    try:
+        guacamole_existing_connections_groups = guacamole_get_connections_groups(
+            base_url=module.params.get('base_url'),
+            validate_certs=module.params.get('validate_certs'),
+            datasource=guacamole_token['dataSource'],
             auth_token=guacamole_token['authToken'],
         )
     except GuacamoleError as e:
