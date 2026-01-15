@@ -61,6 +61,15 @@ options:
         type: dict
         elements: str
 
+    type:
+        description:
+            - Add permissions for connection or connectionGroup
+        default: 'host'
+        type: str
+        choices:
+            - host
+            - group
+
     state:
         description:
             - Create, delete or sync the user-group.
@@ -217,7 +226,7 @@ def guacamole_get_users_group_permissions(base_url, validate_certs, datasource, 
     return group_permissions
 
 
-def guacamole_update_connections_in_group(base_url, validate_certs, datasource, auth_token, group_name, connection_id, action):
+def guacamole_update_connections_in_group(base_url, validate_certs, datasource, auth_token, group_name, connection_id, type, action):
     """
     Add or remove a connection to a group.
     Action must be "add" or "remove"
@@ -229,11 +238,18 @@ def guacamole_update_connections_in_group(base_url, validate_certs, datasource, 
     url_update_connections_in_group = URL_UPDATE_CONNECTIONS_IN_GROUP.format(
         url=base_url, datasource=datasource, token=auth_token, group_name=group_name)
 
-    payload = [{
-        "op": action,
-        "path": '/connectionPermissions/%s' % connection_id,
-        "value": 'READ'
-    }]
+    if type == "host":
+        payload = [{
+            "op": action,
+            "path": '/connectionPermissions/%s' % connection_id,
+            "value": 'READ'
+        }]
+    elif type == "group":
+        payload = [{
+            "op": action,
+            "path": '/connectionGroupPermissions/%s' % connection_id,
+            "value": 'READ'
+        }]
 
     try:
         headers = {'Content-Type': 'application/json'}
@@ -254,6 +270,7 @@ def main():
         auth_password=dict(type='str', required=True, no_log=True),
         validate_certs=dict(type='bool', default=True),
         permissions=dict(type='dict', default={}),
+        type=dict(type='str', choices=['host', 'group'], default='host'),
         state=dict(type='str', choices=['absent', 'present', 'sync'], default='present')
     )
 
@@ -288,6 +305,8 @@ def main():
 
     permissions = module.params.get('permissions')
 
+    if module.params.get('type') not in ['host', 'group']:
+        raise GuacamoleError("type must be 'host' or 'group'")
     # Get the list of the existing connections.
     try:
         guacamole_existing_connections = guacamole_get_connections(
@@ -345,6 +364,7 @@ def main():
                         auth_token=guacamole_token['authToken'],
                         group_name=group_name,
                         connection_id=connection_id,
+                        type=module.params.get('type'),
                         action='add',
                     )
                 except GuacamoleError as e:
@@ -404,6 +424,7 @@ def main():
                         auth_token=guacamole_token['authToken'],
                         group_name=group_name,
                         connection_id=remove_connection_id,
+                        type=module.params.get('type'),
                         action='remove',
                     )
                 except GuacamoleError as e:
